@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure Intruder</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="{{ url_for('static', filename='css/intruder_styles.css') }}" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Configure Intruder - Request Details</h1>
+        <form id="configure-intruder-form" method="POST" enctype="multipart/form-data" action="{{ url_for('configure_intruder', flow_id=flow_id) }}">
+            <div class="form-group">
+                <label for="request">Full HTTP Request:</label>
+                <textarea class="form-control request-box" id="request" name="request" rows="15">{{ request_content }}</textarea>
+                <button type="button" onclick="insertSymbol()">Insert Parameter Tags</button>
+                <small class="form-text text-muted">
+                    Tandai parameter target dengan simbol <code>§</code>, misalnya <code>GET /login?username=§user§&password=§pass§ HTTP/1.1</code>.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="wordlist">Wordlist:</label>
+                <input type="file" class="form-control-file" id="wordlist" name="wordlist">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Save Configuration</button>
+        </form>
+
+        <form id="start-bruteforce-form" method="POST" action="{{ url_for('run_bruteforce_attack') }}">
+            <input type="hidden" name="flow_id" value="{{ flow_id }}">
+            <button type="button" class="btn btn-danger" id="start-attack">Start Attack</button>
+        </form>
+
+        <div id="attack-results">
+            <h3>Attack Results</h3>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Payload</th>
+                        <th>Status</th>
+                        <th>Response Headers</th>
+                        <th>Response Body</th>
+                    </tr>
+                </thead>
+                <tbody id="results-table-body">
+                    <!-- Results will be inserted here dynamically -->
+                </tbody>
+            </table>
+        </div>        
+    </div>
+
+    <script>
+        function insertSymbol() {
+            let requestBox = document.getElementById('request');
+            let startPos = requestBox.selectionStart;
+            let endPos = requestBox.selectionEnd;
+            let text = requestBox.value;
+            
+            // Gunakan simbol yang lebih netral untuk menandai
+            let symbolText = '§' + text.substring(startPos, endPos) + '§';
+            
+            // Simpan perubahan ke dalam textarea
+            requestBox.value = text.substring(0, startPos) + symbolText + text.substring(endPos);
+        }
+
+        $('#configure-intruder-form').on('submit', function(e) {
+            e.preventDefault(); // Prevent actual form submission
+            
+            let formData = new FormData(this);
+            formData.append('request_content', $('#request').val());
+
+            $.ajax({
+                type: 'POST',
+                url: this.action,
+                processData: false,
+                contentType: false,
+                data: formData,
+                success: function(response) {
+                    alert('Configuration saved successfully!');
+                },
+                error: function(error) {
+                    alert('Failed to save configuration.');
+                }
+            });
+        });
+
+        $(document).ready(function() {
+            $('#start-attack').on('click', function() {
+                let flowId = $('input[name="flow_id"]').val();
+                if (!flowId) {
+                    alert('Flow ID is missing.');
+                    return;
+                }
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/intruder/run',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ flow_id: flowId }),
+                    success: function(response) {
+                        processResults(response.results);
+                    },
+                    error: function(error) {
+                        alert('An error occurred: ' + escapeHtml(error.responseJSON.error));
+                    }
+                });
+            });
+
+            function processResults(results) {
+                let resultsTableBody = $('#results-table-body');
+                resultsTableBody.empty();
+
+                results.forEach(function(result) {
+                    let headersString = result.headers ? JSON.stringify(result.headers, null, 2) : 'Tidak ada header yang dikembalikan';
+                    let bodyString = result.response ? result.response : 'Tidak ada isi respons';
+
+                    if (!result.response_headers) {
+                        console.warn('Response headers undefined for payload:', result.payload);
+                    }
+                    if (!result.response_body) {
+                        console.warn('Response body undefined for payload:', result.payload);
+                    }
+
+                    let row = `<tr>
+                        <td>${escapeHtml(result.payload)}</td>
+                        <td>${escapeHtml(result.status_code.toString())}</td>
+                        <td><div class="scrollable-cell">${escapeHtml(headersString)}</div></td>
+                        <td><div class="scrollable-cell">${escapeHtml(bodyString)}</div></td>
+                    </tr>`;
+                    resultsTableBody.append(row);
+                });
+            }
+        });
+
+        function escapeHtml(unsafe) {
+            if (typeof unsafe !== 'string') {
+                unsafe = String(unsafe); 
+            }
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+</body>
+</html>

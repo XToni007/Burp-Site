@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP History</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/logo-2.png') }}" sizes="16x16 32x32" type="image/png">
+    <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <img src="{{ url_for('static', filename='images/logo-2.png') }}" style="height: 80px; width: 100px;"><a class="navbar-brand" href="{{ url_for('home') }}">Burp Site</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('http_history') }}">HTTP History</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('repeater') }}">Repeater</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('intruder') }}">Intruder</a></li>
+            </ul>
+        </div>
+    </nav>
+
+<div class="container-fluid">
+    <!-- Tabel HTTP History -->
+     <h3>HTTP History</h3>
+     <form action="{{ url_for('clear_http_history') }}" method="POST">
+        <button type="submit" class="btn btn-danger mb-3">Clear All</button>
+    </form>
+        
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>No</th>
+                    <th>Method</th>
+                    <th>Host</th>
+                    <th>Path</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for request in requests %}
+                    <tr onclick="showDetails('{{ request.flow_id }}')" style="cursor: pointer;">
+                        <td>{{ loop.index }}</td>
+                        <td>{{ request.method }}</td>
+                        <td>{{ request.host }}</td>
+                        <td>{{ request.url }}</td>
+                        <td>{{ request.status }}</td>
+                        <td>
+                            <a href="{{ url_for('send_to_repeater', flow_id=request.flow_id) }}" class="btn btn-sm">Send to Repeater</a>
+                            <a href="{{ url_for('send_to_intruder', flow_id=request.flow_id) }}" class="btn btn-sm">Send to Intruder</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Request dan Response Details -->
+    <div class="row row-details-container">
+        <div class="request-response">
+            <h5>Request</h5>
+            <div class="request-response-content" id="request-body">Pilih request untuk melihat detail</div>
+        </div>
+        <div class="request-response">
+            <h5>Response</h5>
+            <div class="request-response-content" id="response-body">Pilih request untuk melihat detail</div>
+        </div>
+    </div>
+</div>
+<footer>
+    <p>©2024 Burp Site. All Rights Reserved.</p>
+</footer>
+<!-- AJAX script untuk memuat detail request dan response -->
+<script>
+    function showDetails(flow_id) {
+        fetch(`/http-history/details/${flow_id}`)
+        .then(response => response.json())
+        .then(data => {
+            const requestBody = data.request.trim();
+            const responseBody = data.response.trim();
+            document.getElementById('request-body').textContent = requestBody;
+            document.getElementById('response-body').textContent = responseBody;
+        })
+        .catch(error => {
+            console.error('Error fetching details:', error);
+            document.getElementById('request-body').textContent = 'Error fetching request details';
+            document.getElementById('response-body').textContent = 'Error fetching response details';
+        });
+    }
+    document.getElementById('clear-all').addEventListener('click', function() {
+            fetch('/http-history/clear', { method: 'POST' })
+                .then(response => {
+                    if (response.ok) {
+                        // Reload the page or dynamically remove items from the DOM
+                        location.reload();
+                    } else {
+                        alert('Failed to clear history.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error clearing history:', error);
+                });
+        });
+
+    setInterval(() => {
+        location.reload(); // Refresh page every 5 seconds
+    }, 30000);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

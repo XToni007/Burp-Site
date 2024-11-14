@@ -1,0 +1,183 @@
+body {
+    font-family: Arial, sans-serif!important;
+    font-size: 18px;
+    background-color: #0f0e17!important;
+    color: #333333!important;
+}
+
+.navbar {
+    padding: 0.5% !important;
+    /* background-color: #262626 !important; */
+    align-items: center;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: #fffffe !important;
+}
+
+.navbar-dark .navbar-brand {
+    color: #fffffe !important;
+}
+
+.navbar-brand {
+    font-size: 40px !important;
+    font-weight: bold;
+}
+
+.navbar-collapse {
+    text-align: center;
+}
+
+.nav-link {
+    font-size: 24px !important;
+}
+
+.display-4, .lead{
+    color: #fffffe!important;
+}
+
+.intro-card {
+    background-color: #d1e7f2;
+    border-radius: 8px;
+}
+
+.feature-card {
+    background-color: #fffffe;
+    border-radius: 8px;
+    transition: transform 0.2s;
+}
+
+.feature-card:hover {
+    transform: scale(1.05);
+    background-color: #fcf8f3;
+}
+
+.feature-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #0f0e17;
+}
+
+.card-text{
+    color: #2e2f3e!important;
+}
+
+.btn{
+    background-color: #ff8906!important;
+    border: 0!important;
+}
+
+hr {
+    border: 0;
+    height: 1px;
+    background: #ddd;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.tutorial-section {
+    background-color: #fffffe;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    align-items: center!important;
+    text-align: justify;
+    text-justify: inter-word;
+    
+}
+
+.tutorial-section h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.tutorial-card {
+    padding: 2rem;
+    border-radius: 10px;
+    margin: auto!important;
+    margin-bottom: 1.5rem;
+    background: #0f0e17;
+    align-items: center;
+    width: 80%;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tutorial-card h3 {
+    font-size: 1.75rem;
+    color: #fffffe;
+    font-weight: bold;
+}
+
+.tutorial-description {
+    font-size: 1rem;
+    color: #a7a9be;
+    line-height: 1.5;
+    margin-top: 1rem;
+}
+
+ul{
+    color: #a7a9be;
+}
+
+.tutorial-description.text-muted {
+    font-size: 0.9rem;
+    color: #a7a9be!important;
+}
+
+.tutorial-card img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: #fffffe solid 2px;
+    transition: transform 0.3s ease;
+}
+
+.tutorial-card img:hover {
+    transform: scale(1.02);
+}
+
+footer{
+    text-align: center;
+    margin: auto;
+    align-items: center;
+    color: white;
+}
+
+footer p{
+    margin-bottom: 0!important;
+}
+
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 28px;
+    }
+    
+    .nav-link {
+        font-size: 18px !important;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .tutorial-section h2 {
+        font-size: 2rem;
+    }
+    
+    .feature-card {
+        padding: 1rem;
+    }
+    
+    .feature-title {
+        font-size: 1.25rem;
+    }
+    
+    .tutorial-card h3 {
+        font-size: 1.5rem;
+    }
+    
+    .tutorial-description {
+        font-size: 0.9rem;
+    }
+}
+
