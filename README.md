@@ -1,5 +1,5 @@
 # Burp-Site
-<img src="/src/static/images/logo-2.png">
+<img src="/src/static/images/logo-2.png" width="300"/>
 Burp-Site is a web application security testing tool that allows you to scan and analyze web applications
 for vulnerabilities. This Application run based on docker service and python.
 
