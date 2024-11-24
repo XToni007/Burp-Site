@@ -33,8 +33,7 @@ To use Burp-Site, follow these steps:
 
 
 #### Important Notes:
-- If you want to change the listener port, you can heading to run.py file and change the --listen-port.
-<img src="/src/static/images/change-port.png">
+- If you want to change the listener port, you can heading to run.py file and change the --listen-port. <img src="/src/static/images/change-port.png">
 - Each time you change the source code, rebuild the docker by run ./start.sh
 - If you rebuild the docker, you have to re-config the certificate into your devices.
 
