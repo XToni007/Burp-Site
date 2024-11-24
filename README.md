@@ -23,4 +23,20 @@ To use Burp-Site, follow these steps:
 3. In your web browser, navigate to `http://localhost:8000` to access the Burp-Site interface.
 <img src="/src/static/images/homePage.png">
 
+### Proxy Configuration
+
+1. Set browser proxy with your device local address (example 127.0.0.1) and port 8080.
+2. Navigate to `mitm.it` at your browser.
+<img src="/src/static/images/mitm.it.png">
+3. Download the certificate based on device or browser you use.
+4. Install the certificate on your device or browser.
+
+
+#### Important Notes:
+- If you want to change the listener port, you can heading to run.py file and change the --listen-port.
+<img src="/src/static/images/change-port.png">
+- Each time you change the source code, rebuild the docker by run ./start.sh
+- If you rebuild the docker, you have to re-config the certificate into your devices.
+
+
 
