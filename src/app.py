@@ -3,9 +3,11 @@ import logging
 import requests
 import re
 from flask import Flask, render_template, jsonify, redirect, url_for, request as flask_request
+from flask_socketio import SocketIO, emit
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -67,6 +69,7 @@ def parse_http_request(request_data):
             body.append(line)
 
     body_str = "\n".join(body)
+    logging.debug(f"Parsed HTTP Request: method={method}, path={path}, host={host}, protocol={protocol}")
     return method, path, host, headers, body_str, protocol
 
 def parse_http_response(response_data):
@@ -77,11 +80,12 @@ def parse_http_response(response_data):
         parts = status_line.split()
         if len(parts) >= 2:
             return parts[1]  # Return status code
-    return "N/A"
+    logging.debug(f"Parsed HTTP Response: status={parts[1] if len(parts) >= 2 else 'N/A'}")
+    return parts[1] if len(parts) >= 2 else "N/A"
 
 
-def read_file(directory, filename):
-    filepath = os.path.join(directory, f"{filename}.txt")
+def read_file(directory, flow_id):
+    filepath = os.path.join(directory, f"{flow_id}.txt")
     try:
         if os.path.exists(filepath):
             with open(filepath, 'r', encoding='utf-8') as file:
@@ -93,8 +97,8 @@ def read_file(directory, filename):
         logging.error(f"Error reading file {filepath}: {e}")
     return None
 
-def save_to_file(directory, filename, content):
-    filepath = os.path.join(directory, f"{filename}.txt")
+def save_to_file(directory, flow_id, content):
+    filepath = os.path.join(directory, f"{flow_id}.txt")
     try:
         with open(filepath, 'w', encoding='utf-8') as file:
             file.write(content)
@@ -124,33 +128,62 @@ def home():
 
 @app.route('/http-history')
 def http_history():
-    """Endpoint to display the HTTP history in a table format."""
-    request_files = [f for f in os.listdir(REQUESTS_DIR) if f.endswith('.txt')]
     requests_data = []
+    try:
+        request_files = [f for f in os.listdir(REQUESTS_DIR) if f.endswith('.txt')]
+        for file in request_files:
+            flow_id = file.split('.')[0]
+            request_data = read_file(REQUESTS_DIR, flow_id)
+            response_data = read_file(RESPONSES_DIR, flow_id)
 
-    for file in request_files:
-        flow_id = file.split('.')[0]  # Remove file extension
-        request_data = read_file(REQUESTS_DIR, flow_id)
-        response_data = read_file(RESPONSES_DIR, flow_id)
+            if request_data and response_data:
+                method, url, host, _, _, protocol = parse_http_request(request_data)
+                status = parse_http_response(response_data)
+            else:
+                method, url, host, status, protocol = "UNKNOWN", "UNKNOWN", "UNKNOWN", "N/A", "HTTP/1.1"
 
-        if request_data and response_data:
-            method, url, host, _, _, protocol = parse_http_request(request_data)
-            status = parse_http_response(response_data)
-        else:
-            logging.error(f"Missing data for flow ID: {flow_id}")
-            method, url, host, status, protocol = "UNKNOWN", "UNKNOWN", "UNKNOWN", "N/A", "HTTP/1.1"
-        requests_data.append({
-            'flow_id': flow_id,
-            'method': method,
-            'url': url,
-            'host': host,
-            'status': status,
-            'protocol': protocol  # Added protocol for display
-        })
-
+            requests_data.append({
+                'flow_id': flow_id,
+                'method': method,
+                'url': url,
+                'host': host,
+                'status': status,
+                'protocol': protocol
+            })
+    except Exception as e:
+        logging.error(f"Error in http_history: {e}")
     return render_template('http_history.html', requests=requests_data)
 
-@app.route('/http-history/details/<flow_id>')
+# WebSocket event untuk mengirim data HTTP history ke klien
+@socketio.on('get_http_history')
+def send_http_history():
+    requests_data = []
+    try:
+        request_files = [f for f in os.listdir(REQUESTS_DIR) if f.endswith('.txt')]
+        for file in request_files:
+            flow_id = file.split('.')[0]
+            request_data = read_file(REQUESTS_DIR, flow_id)
+            response_data = read_file(RESPONSES_DIR, flow_id)
+
+            if request_data and response_data:
+                method, url, host, _, _, protocol = parse_http_request(request_data)
+                status = parse_http_response(response_data)
+            else:
+                method, url, host, status, protocol = "UNKNOWN", "UNKNOWN", "UNKNOWN", "N/A", "HTTP/1.1"
+
+            requests_data.append({
+                'flow_id': flow_id,
+                'method': method,
+                'url': url,
+                'host': host,
+                'status': status,
+                'protocol': protocol
+            })
+        emit('http_history_data', requests_data)  # Kirim data ke klien
+    except Exception as e:
+        logging.error(f"Error in send_http_history: {e}")
+
+@app.route('/http-history/details/<flow_id>', methods=['GET'])
 def http_history_details(flow_id):
     """Endpoint to show details of a specific HTTP request and response."""
     request_data = read_file(REQUESTS_DIR, flow_id)
@@ -184,25 +217,39 @@ def clear_http_history():
         logging.error(f"Error clearing HTTP history: {e}")
         return jsonify({'error': 'Failed to clear HTTP history'}), 500
 
-@app.route('/http-history/send-to-repeater/<flow_id>')
+@app.route('/send-to-repeater/<flow_id>')
 def send_to_repeater(flow_id):
     """Endpoint to send a specific request to the repeater."""
-    request_data = read_file(REQUESTS_DIR, flow_id)
-    if request_data:
-        save_to_file(REPEATER_DIR, flow_id, request_data)
-        return redirect(url_for('repeater'))
-    return jsonify({'error': 'Request file not found'}), 404
+    try:
+        # Pastikan file request ada
+        request_data = read_file(REQUESTS_DIR, flow_id)
+        if not request_data:
+            return jsonify({'error': f'Request file not found for flow_id: {flow_id}'}), 404
 
-@app.route('/http-history/send-to-intruder/<flow_id>')
+        # Simpan ke direktori Repeater
+        save_to_file(REPEATER_DIR, flow_id, request_data)
+        logging.info(f"Request {flow_id} successfully sent to Repeater.")
+        return redirect(url_for('repeater'))
+    except Exception as e:
+        logging.error(f"Error in send_to_repeater for flow_id {flow_id}: {e}")
+        return jsonify({'error': 'Failed to send request to Repeater.'}), 500
+
+@app.route('/send-to-intruder/<flow_id>')
 def send_to_intruder(flow_id):
     """Endpoint to send a specific request to the Intruder."""
-    request_data = read_file(REQUESTS_DIR, flow_id)
-    if request_data:
+    try:
+        # Pastikan file request ada
+        request_data = read_file(REQUESTS_DIR, flow_id)
+        if not request_data:
+            return jsonify({'error': f'Request file not found for flow_id: {flow_id}'}), 404
+
+        # Simpan ke direktori Intruder
         save_to_file(INTRUDER_DIR, flow_id, request_data)
-        logging.info(f"Request {flow_id} successfully sent to intruder.")
+        logging.info(f"Request {flow_id} successfully sent to Intruder.")
         return redirect(url_for('intruder'))
-    logging.error(f"Failed to find request file for flow_id: {flow_id}")
-    return jsonify({'error': 'Request file not found'}), 404
+    except Exception as e:
+        logging.error(f"Error in send_to_intruder for flow_id {flow_id}: {e}")
+        return jsonify({'error': 'Failed to send request to Intruder.'}), 500
 
 @app.route('/repeater')
 def repeater():
@@ -495,4 +542,4 @@ def clear_intruder():
         return jsonify({'error': 'Failed to clear Intruder history'}), 500
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)

@@ -13,6 +13,11 @@ body{
     color: #fffffe !important;
 }
 
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: #ff8906;
+    text-decoration: underline;
+}
+
 .navbar-dark .navbar-brand {
     color: #fffffe !important;
 }
@@ -20,6 +25,10 @@ body{
 .navbar-brand {
     font-size: 40px !important;
     font-weight: bold;
+}
+
+.navbar-brand:hover {
+    color: #ff8906;
 }
 
 .navbar-collapse {
@@ -47,12 +56,18 @@ body{
     font-size: 15px!important;
 }
 
+tbody tr.highlighted {
+    background-color: #A9D6F5!important;
+    font-weight: bold;  /* Membuat teks lebih tebal */
+    border: 3px solid black;  
+}
+
 .table-responsive {
     max-height: 400px;
     overflow-y: auto;
     width: 100%;
+    margin-top: 2px;
     margin: auto;
-    border-style: solid;
     border-radius: 10px;
     margin-bottom: 20px;
     font-size: 15px;
@@ -90,6 +105,7 @@ body{
     font-size: 15px!important;
     height: 100%;
     max-width: 100%;
+    overflow-x: auto; /* Tambahkan scrollbar horizontal jika konten terlalu panjang */
 }
 
 footer{
@@ -180,8 +196,19 @@ footer p{
     font-size: 20px!important;
 }
 
-.btn-sm{
+/* .btn-sm{
     background-color: #FFC55A!important;
     color: #FC4100!important;
     border: 1px solid #FC4100!important;
+} */
+
+/* Warna untuk Tombol */
+a .btn .btn-sm .btn-repeater{
+    background-color: #0056b3 !important; /* Biru lebih gelap */
+    border: 1px solid #003d7e !important; /* Border biru lebih gelap */
+}
+
+a .btn .btn-sm .btn-intruder{
+    background-color: #a71d2a !important; /* Merah lebih gelap */
+    border: 1px solid #7a1220 !important; /* Border merah lebih gelap */
 }

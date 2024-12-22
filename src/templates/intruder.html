@@ -10,7 +10,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
-
     <nav class="navbar navbar-expand-lg navbar-dark">
         <img src="{{ url_for('static', filename='images/logo-2.png') }}" style="height: 80px; width: 100px;"><a class="navbar-brand" href="{{ url_for('home') }}">Burp Site</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,7 +65,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="configModalLabel">Configure Intruder - Request Details</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -80,52 +79,7 @@
 <footer>
     <p>©2024 Burp Site. All Rights Reserved.</p>
 </footer>
-<script>
-    $(document).ready(function() {
-        // Configure button click event
-        $(document).on('click', '.configure-btn', function(e) {
-            e.preventDefault();
-            const flowId = $(this).data('flow-id');
-
-            // Show the modal
-            $('#configModal').modal('show');
-
-            // Use AJAX to fetch the configuration page
-            $.ajax({
-                url: `/intruder/configure/${flowId}`,
-                type: 'GET',
-                success: function(data) {
-                    // Inject the fetched content into the modal's container
-                    $('#config-container').html(data);
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error fetching configuration:', error);
-                }
-            });
-        });
-
-        // Refresh page when modal is closed
-        $('#configModal').on('hidden.bs.modal', function() {
-            location.reload();  // Reload the page automatically when the modal closes
-        });
-
-        // Clear-all button event listener
-        $('#clear-all').on('click', function(e) {
-            e.preventDefault();
-            fetch('/intruder/clear', { method: 'POST' })
-                .then(response => {
-                    if (response.ok) {
-                        location.reload(); // Reload page on successful clear
-                    } else {
-                        alert('Failed to clear history.');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error clearing history:', error);
-                });
-        });
-    });
-</script>
+<script src="{{ url_for('static', filename='js/intruder.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
